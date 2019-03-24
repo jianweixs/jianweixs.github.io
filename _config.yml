@@ -12,7 +12,7 @@ github_repo: "https://github.com/jianweixs/jianweixs.github.io.git" # you code r
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
 sidebar-about-description: "Goals determine what you going to be!"
-sidebar-avatar: /img/about-by-jianwei.jpeg      # use absolute URL, seeing it's used in both `/` and `/about/`
+sidebar-avatar: /img/about-by-jw.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
 
@@ -74,7 +74,7 @@ kramdown:
 
 # Analytics settings
 # Baidu Analytics
-#ba_track_id: b50bf2b12b5338a1845e33832976fd68
+ba_track_id: 60d044e71514abb76be1357ca4039398
 
 # Google Analytics
 ga_track_id: 'UA-136795556-1'            # Format: UA-xxxxxx-xx
