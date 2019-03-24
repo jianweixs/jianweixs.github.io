@@ -19,11 +19,11 @@ sidebar-avatar: /img/about-BY-gentle.jpg      # use absolute URL, seeing it's us
 # SNS settings
 RSS: false
 # weibo_username:     jianweixs
-zhihu_username:     jianweixs
+zhihu_username:     si-nian-cheng-hui-jin
 github_username:    jianweixs
-facebook_username:  baiying.qiu.7
-jianshu_username:   e71990ada2fd
-#twitter_username:   jianweixs
+#facebook_username:  zjianweixs
+jianshu_username:   82e47294c479
+#twitter_username:   none
 
 
 
@@ -99,7 +99,7 @@ service-worker: true
 # Friends
 friends: [
     {
-        title: "简书·BY",
-        href: "http://www.jianshu.com/u/e71990ada2fd"
+        title: "简书·shakura",
+        href: "https://www.jianshu.com/u/82e47294c479"
     }
 ]
