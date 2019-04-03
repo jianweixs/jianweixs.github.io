@@ -21,13 +21,14 @@ tags:
 
 判断容器是是否为健康，如果应用程序不能正常响应请求，则标记容器为非健康状态，根据deploy中设置的重启策略进行重启。
 
-![google-kubernetes-probe-livenessae14](img/google-kubernetes-probe-livenessae14.GIF)
+![google-kubernetes-probe-readiness6ktf.GIF](https://i.loli.net/2019/04/03/5ca4a713bc1da.gif)
+
 
 ## 就绪性探针(readnessProbe)：
 
 ​	kubernetes配置一个等待时间，经过等待时间之后才可以执行第一次准备就绪检查。之后会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod就绪检查未通过，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。
 
-![google-kubernetes-probe-readiness6ktf](img/google-kubernetes-probe-readiness6ktf.GIF)
+![google-kubernetes-probe-livenessae14.GIF](https://i.loli.net/2019/04/03/5ca4a713bf0a6.gif)
 
 探针有许多字段，您可以使用它们来更精确地控制活动和准备情况检查的行为：
 
