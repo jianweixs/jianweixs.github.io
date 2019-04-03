@@ -1,3 +1,19 @@
+---
+layout:     post
+title:      Kubernetes健康状态检查
+subtitle:   Pod健康状态检查
+date:       2019-04-03
+author:     jianweixs
+header-img: img/post-bg-coffee.jpeg
+catalog: 	 true
+tags:
+    - kubernetes
+    - pod
+    - 容器
+    - 健康状态
+---
+
+
 # Pod健康状态检查
 
 
