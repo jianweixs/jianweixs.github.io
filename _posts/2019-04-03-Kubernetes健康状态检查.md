@@ -14,43 +14,38 @@ tags:
 ---
 
 
+
+[TOC]
+
 # Pod健康状态检查
 
 
-## 存活性探针( livenessProbe)：
+
+## 存活性探针( livenessProbe)
 
 判断容器是是否为健康，如果应用程序不能正常响应请求，则标记容器为非健康状态，根据deploy中设置的重启策略进行重启。
 
 ![google-kubernetes-probe-readiness6ktf.GIF](https://i.loli.net/2019/04/03/5ca4a713bc1da.gif)
 
+​	*Picture From - Configure Liveness and Readiness Probes*
 
-## 就绪性探针(readnessProbe)：
+
+
+## 就绪性探针(readnessProbe)
 
 ​	kubernetes配置一个等待时间，经过等待时间之后才可以执行第一次准备就绪检查。之后会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod就绪检查未通过，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。
 
 ![google-kubernetes-probe-livenessae14.GIF](https://i.loli.net/2019/04/03/5ca4a713bf0a6.gif)
 
-探针有许多字段，您可以使用它们来更精确地控制活动和准备情况检查的行为：
+​	*Picture From - Configure Liveness and Readiness Probes*
 
-- initialDelaySeconds：启动活动或准备就绪探测之前容器启动后的秒数。
-- periodSeconds：执行探测的频率（以秒为单位）。默认为10秒。最小值为1。
-- timeoutSeconds：探测超时的秒数。默认为1秒。最小值为1。
-- successThreshold：失败后探测成功的最小连续成功次数。默认为1.活跃度必须为1。最小值为1。
-- failureThreshold：当Pod启动并且探测失败时，Kubernetes将在放弃之前尝试failureThreshold times。在活动探测的情况下放弃意味着重新启动Pod。如果准备好探测，Pod将被标记为未准备好。默认为3.最小值为1。
 
-HTTP probe 具有可在`httpGet`上设置的其他字段：
 
-- host：要连接的主机名，默认为pod IP。 您可能希望在httpHeaders中设置“主机”。
+## 探针类型
 
-- scheme：用于连接主机的方案（HTTP或HTTPS）。 默认为HTTP。
+### Exec探针
 
-- path：HTTP服务器上的访问路径。
-
-- httpHeaders：要在请求中设置的自定义标头。 HTTP允许重复标头。
-
-- port：要在容器上访问的端口的名称或编号。 数字必须在1到65535的范围内。
-
-许多运行很长时间的应用程序最终会变为损坏状态，除非重新启动，否则无法恢复。 Kubernetes提供了健康状态来检测和纠正这种情况。 在本练习中，您将创建一个基于`k8s.gcr.io/busybox`映像运行Container的Pod。 这是Pod的配置文件：
+​	执行命令。容器的状态由命令执行完返回的状态码确定。如果返回的状态码是0，则认为pod是健康的，如果返回的是其他状态码，则认为pod不健康。
 
 ```yaml
 apiVersion: v1
@@ -136,22 +131,75 @@ NAME            READY     STATUS    RESTARTS   AGE
 liveness-exec   1/1       Running   1          1m
 ```
 
-## 类型：
-
-### Exec探针：
-
-​	执行命令。容器的状态由命令执行完返回的状态码确定。如果返回的状态码是0，则认为pod是健康的，如果返回的是其他状态码，则认为pod不健康。
-
 ### HTTP Get探针
 
-​	任何大于或等于200且小于400的代码表示成功。任何其他代码表示失败。
+  任何大于或等于200且小于400的代码表示成功。任何其他代码表示失败。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: liveness-http
+spec:
+  containers:
+  - name: liveness
+    image: k8s.gcr.io/liveness
+    args:
+    - /server
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        httpHeaders:
+        - name: Custom-Header
+          value: Awesome
+      initialDelaySeconds: 3
+      periodSeconds: 3
+```
+该配置文件只定义了一个容器，`livenessProbe` 指定kubelet需要每隔3秒执行一次liveness probe。`initialDelaySeconds` 指定kubelet在该执行第一次探测之前需要等待3秒钟。该探针将向容器中的server的8080端口发送一个HTTP GET请求。如果server的`/healthz`路径的handler返回一个成功的返回码，kubelet就会认定该容器是活着的并且很健康。如果返回失败的返回码，kubelet将杀掉该容器并重启它。
+
+任何大于200小于400的返回码都会认定是成功的返回码。其他返回码都会被认为是失败的返回码。
+
+查看该server的源码：[server.go](https://github.com/kubernetes/kubernetes/blob/master/test/images/liveness/server.go).
+
+最开始的10秒该容器是活着的， `/healthz` handler返回200的状态码。这之后将返回500的返回码。
+
+```go
+http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+    duration := time.Now().Sub(started)
+    if duration.Seconds() > 10 {
+        w.WriteHeader(500)
+        w.Write([]byte(fmt.Sprintf("error: %v", duration.Seconds())))
+    } else {
+        w.WriteHeader(200)
+        w.Write([]byte("ok"))
+    }
+})
+```
+
+容器启动3秒后，kubelet开始执行健康检查。第一次健康监测会成功，但是10秒后，健康检查将失败，kubelet将杀掉和重启容器。
+
+创建一个Pod来测试一下HTTP liveness检测：
+
+```bash
+kubectl create -f https://k8s.io/docs/tasks/configure-pod-container/http-liveness.yaml
+```
+
+After 10 seconds, view Pod events to verify that liveness probes have failed and the Container has been restarted:
+
+10秒后，查看Pod的event，确认liveness probe失败并重启了容器。
+
+```bash
+kubectl describe pod liveness-http
+```
 
 ### TCP socket探针
 
 ​	它打开一个tcp链接到容器的指定端口，Kubernetes在指定端口上建立tcp连接。如果可以建立连接，容器被认为是健康的，如果不能建立，会被认为不健康。
 
 ```yaml
-
 apiVersion: v1
 kind: Pod
 metadata:
@@ -175,6 +223,41 @@ spec:
       initialDelaySeconds: 15
       periodSeconds: 20
 ```
+
+如您所见，TCP检查的配置与HTTP检查非常相似。 此示例同时使用了readiness和liveness probe。 容器启动后5秒钟，kubelet将发送第一个readiness probe。 这将尝试连接到端口8080上的goproxy容器。如果探测成功，则该pod将被标记为就绪。Kubelet将每隔10秒钟执行一次该检查。
+除了readiness probe之外，该配置还包括liveness probe。 容器启动15秒后，kubelet将运行第一个liveness probe。 就像readiness probe一样，这将尝试连接到goproxy容器上的8080端口。如果liveness probe失败，容器将重新启动。
+使用命名的端口
+可以使用命名的ContainerPort作为HTTP或TCP liveness检查：
+
+```yaml
+ports:
+- name: liveness-port
+  containerPort: 8080
+  hostPort: 8080
+
+livenessProbe:
+  httpGet:
+  path: /healthz
+  port: liveness-port
+```
+
+定义readiness探针
+有时，应用程序暂时无法对外部流量提供服务。 例如，应用程序可能需要在启动期间加载大量数据或配置文件。 在这种情况下，你不想杀死应用程序，但你也不想发送请求。 Kubernetes提供了readiness probe来检测和减轻这些情况。 Pod中的容器可以报告自己还没有准备，不能处理Kubernetes服务发送过来的流量。
+Readiness probe的配置跟liveness probe很像。唯一的不同是使用 readinessProbe而不是livenessProbe。
+
+```yaml
+readinessProbe:
+  exec:
+    command:
+    - cat
+    - /tmp/healthy
+  initialDelaySeconds: 5
+  periodSeconds: 5
+```
+
+Readiness probe的HTTP和TCP的探测器配置跟liveness probe一样。
+Readiness和livenss probe可以并行用于同一容器。 使用两者可以确保流量无法到达未准备好的容器，并且容器在失败时重新启动。
+
 
 
 ## 参考资料：
