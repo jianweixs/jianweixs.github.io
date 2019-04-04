@@ -14,11 +14,7 @@ tags:
 ---
 
 
-
-[TOC]
-
 # Pod健康状态检查
-
 
 
 ## 存活性探针( livenessProbe)
@@ -29,8 +25,6 @@ tags:
 
 ​	*Picture From - Configure Liveness and Readiness Probes*
 
-
-
 ## 就绪性探针(readnessProbe)
 
 ​	kubernetes配置一个等待时间，经过等待时间之后才可以执行第一次准备就绪检查。之后会周期性地调用探针，并根据就绪探针的结果采取行动。如果某个pod就绪检查未通过，则会从该服务中删除该pod。如果pod再次准备就绪，则重新添加pod。
@@ -38,8 +32,6 @@ tags:
 ![google-kubernetes-probe-livenessae14.GIF](https://i.loli.net/2019/04/03/5ca4a713bf0a6.gif)
 
 ​	*Picture From - Configure Liveness and Readiness Probes*
-
-
 
 ## 探针类型
 
